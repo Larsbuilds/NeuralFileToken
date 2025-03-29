@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  files         File[]
+  favorites     File[]    @relation("UserFavorites")
+  tags          Tag[]
+  settings      UserSettings?
+}
+
+model File {
+  id            String    @id @default(cuid())
+  name          String
+  path          String
+  type          String
+  size          Int
+  metadata      Json?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  favoritedBy   User[]    @relation("UserFavorites")
+  tags          Tag[]
+  versions      FileVersion[]
+}
+
+model Tag {
+  id            String    @id @default(cuid())
+  name          String
+  color         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  files         File[]
+}
+
+model FileVersion {
+  id            String    @id @default(cuid())
+  fileId        String
+  file          File      @relation(fields: [fileId], references: [id])
+  version       Int
+  path          String
+  createdAt     DateTime  @default(now())
+}
+
+model UserSettings {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id])
+  theme         String    @default("light")
+  layout        String    @default("grid")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
